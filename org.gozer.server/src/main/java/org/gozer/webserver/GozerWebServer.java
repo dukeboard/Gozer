@@ -27,7 +27,7 @@ public class GozerWebServer implements Runnable {
         srv.addDefaultServlets(null);
 
         GozerServlet gozerServlet = new GozerServlet();
-        srv.addServlet("/gozer",gozerServlet);
+        srv.addServlet("/gozer/*",gozerServlet);
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
