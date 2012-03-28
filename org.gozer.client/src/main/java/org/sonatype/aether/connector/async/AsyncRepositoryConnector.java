@@ -553,7 +553,11 @@ class AsyncRepositoryConnector
         public void run()
         {
             download.setState( Transfer.State.ACTIVE );
-            final String uri = validateUri( path );
+            String vuri = validateUri( path );
+            if(useGozer){
+                vuri = vuri.substring("gozer:".length());
+            }
+            final String uri = vuri;
             final DefaultTransferResource transferResource =
                 new DefaultTransferResource( repository.getUrl(), path, file, download.getTrace() );
             final boolean ignoreChecksum = RepositoryPolicy.CHECKSUM_POLICY_IGNORE.equals( checksumPolicy );
@@ -588,12 +592,16 @@ class AsyncRepositoryConnector
                 headers.add( "Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2" );
                 headers.replaceAll( AsyncRepositoryConnector.this.headers );
                 
+
+                
                 /* Headers */
                 StringBuilder repositories= new StringBuilder();
                 for(int i =0 ; i< cachedRepos.size();i++){
                     if(i!=0){repositories.append(",");}
                     repositories.append(cachedRepos.get(i).getId()+"="+cachedRepos.get(i).getUrl());
                 }
+                System.out.println(repositories.toString());
+
                 headers.add("Repositories",repositories.toString());
                 Request request = null;
                 final AtomicInteger maxRequestTry = new AtomicInteger();
@@ -771,6 +779,16 @@ class AsyncRepositoryConnector
 
                             handleResponseCode( uri, response.getStatusCode(), response.getStatusText() );
 
+                            if(useGozer){
+                                System.out.println("GozerDowl "+uri+" "+fileLockCompanion.getFile().getAbsolutePath());
+
+                              //  GozerVirtualFile
+                                
+                            }
+                            
+                            System.out.println("Helloooo!!!");
+                            
+                            
                             if ( !ignoreChecksum )
                             {
                                 activeHttpClient.getConfig().executorService().execute( new Runnable()

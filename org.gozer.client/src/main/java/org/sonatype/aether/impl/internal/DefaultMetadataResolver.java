@@ -559,13 +559,8 @@ public class DefaultMetadataResolver
                     remoteRepositoryManager.getRepositoryConnector( session, requestRepository );
                 try
                 {
-                    System.out.println("ctx="+request.getRequestContext());
-                    System.out.println("Before down metaData "+download.getFile().getAbsolutePath());
-                    
                     connector.get( null, Arrays.asList( download ) );
-                    
-                    
-                    System.out.println("After donwload "+download.getState());
+                   // System.out.println("After donwload "+download.getTrace().getData());
                     
                 }
                 finally
