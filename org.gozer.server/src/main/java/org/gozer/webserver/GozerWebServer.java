@@ -22,10 +22,12 @@ public class GozerWebServer implements Runnable {
 
 
         Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
-        aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath() + "Web"));
+        aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath()));
         srv.setMappingTable(aliases);
         srv.addDefaultServlets(null);
 
+        GozerServlet gozerServlet = new GozerServlet();
+        srv.addServlet("/gozer",gozerServlet);
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {

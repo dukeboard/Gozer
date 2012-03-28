@@ -78,6 +78,7 @@
 
     <modules>
         <module>../org.gozer.server</module>
+        <module>../org.gozer.client</module>
     </modules>
 
     <distributionManagement>
