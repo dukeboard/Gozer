@@ -7,6 +7,7 @@ import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
 import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
 import org.sonatype.aether.impl.internal.EnhancedLocalRepositoryManagerFactory;
+import org.sonatype.aether.impl.internal.Slf4jLogger;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.sonatype.aether.spi.log.Logger;
