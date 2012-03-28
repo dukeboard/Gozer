@@ -18,4 +18,12 @@
         <gozer.version>${project.version}</gozer.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.tjws</groupId>
+            <artifactId>webserver</artifactId>
+            <version>1.95</version>
+        </dependency>
+    </dependencies>
+
 </project>
