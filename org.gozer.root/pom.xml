@@ -10,6 +10,7 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <gozer.version>${project.version}</gozer.version>
         <slf4j.version>1.6.4</slf4j.version>
     </properties>
