@@ -29,7 +29,7 @@ public class PlexusStub {
 
     public RepositorySystem getNewRepositorySystem() {
         DefaultServiceLocator locator = new DefaultServiceLocator();
-        locator.setServices(Logger.class, new AetherSlf4jLogger());
+//        locator.setServices(Logger.class, new AetherSlf4jLogger());
         locator.setService(LocalRepositoryManagerFactory.class, EnhancedLocalRepositoryManagerFactory.class);
         locator.setService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
         locator.setService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class);
