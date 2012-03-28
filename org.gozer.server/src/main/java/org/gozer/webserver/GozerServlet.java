@@ -61,21 +61,19 @@ public class GozerServlet extends HttpServlet {
 
         RepositorySystem repSys = newRepositorySystem();
 
-        Artifact artifact = getArtifactFromRequest(req.getPathInfo());
-
-        ArtifactRequest artifactRequest = new ArtifactRequest();
-        artifactRequest.setArtifact(artifact);
-        artifactRequest.setRepositories(getRepositoriesFromRequest(req));
-
-        logger.info("Resolving artifact");
-        try {
-            ArtifactResult artefactResult = repSys.resolveArtifact(newSession(repSys), artifactRequest);
-        } catch (ArtifactResolutionException e) {
-            logger.error("Error :", e);
-        }
-
-//        RepositorySystem repoSystem = newRepositorySystem();
+//        Artifact artifact = getArtifactFromRequest(req.getPathInfo());
 //
+//        ArtifactRequest artifactRequest = new ArtifactRequest();
+//        artifactRequest.setArtifact(artifact);
+//        artifactRequest.setRepositories(getRepositoriesFromRequest(req));
+//
+//        logger.info("Resolving artifact");
+//        try {
+//            ArtifactResult artefactResult = repSys.resolveArtifact(newSession(repSys), artifactRequest);
+//        } catch (ArtifactResolutionException e) {
+//            logger.error("Error :", e);
+//        }
+
         RepositorySystemSession session = newSession(repSys);
 //
         Dependency dependency = new Dependency( new DefaultArtifact( "org.apache.maven:maven-profile:2.2.1" ), "compile" );
@@ -84,6 +82,7 @@ public class GozerServlet extends HttpServlet {
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRoot(dependency);
         collectRequest.addRepository(central);
+        collectRequest.setRepositories(getRepositoriesFromRequest(req));
         DependencyNode node = null;
         try {
             node = repSys.collectDependencies(session, collectRequest).getRoot();
@@ -100,7 +99,7 @@ public class GozerServlet extends HttpServlet {
 //        }
 //
         PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
-        node.accept( nlg );
+        node.accept(nlg);
         logger.info(nlg.getClassPath());
 
         resp.getOutputStream().println("DaFuck");
@@ -110,6 +109,7 @@ public class GozerServlet extends HttpServlet {
     List<RemoteRepository> getRepositoriesFromRequest(HttpServletRequest request) {
 
         String header = request.getHeader(REPOSITORIES);
+        logger.info("Request header : Repositories : {}",header);
         if (header == null) {
             // if no repositories, switch default to central
             return Arrays.asList(new RemoteRepository("central", "default", "http://repo1.maven.org/maven2/"));
@@ -125,7 +125,7 @@ public class GozerServlet extends HttpServlet {
                 String repoURL = repoInfo[1];
 
                 // use a properties file to resolve the gozer server
-                if (repoURL.equals("MY ADDRESS")) {
+                if (repoURL.startsWith("gozer:")) {
                     break;
                 }
                 
