@@ -7,6 +7,7 @@ import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
 import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
 import org.sonatype.aether.impl.internal.EnhancedLocalRepositoryManagerFactory;
+import org.sonatype.aether.impl.internal.Slf4jLogger;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.sonatype.aether.spi.log.Logger;
@@ -28,7 +29,7 @@ public class PlexusStub {
 
     public RepositorySystem getNewRepositorySystem() {
         DefaultServiceLocator locator = new DefaultServiceLocator();
-        locator.setServices(Logger.class, new AetherSlf4jLogger());
+        locator.setServices(Logger.class, new Slf4jLogger());
         locator.setService(LocalRepositoryManagerFactory.class, EnhancedLocalRepositoryManagerFactory.class);
         locator.setService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
         locator.setService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class);
