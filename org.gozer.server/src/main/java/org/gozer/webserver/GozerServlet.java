@@ -16,7 +16,7 @@ public class GozerServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println(req.getRequestURI());
         resp.getOutputStream().println("DaFuck");
-
     }
 }
