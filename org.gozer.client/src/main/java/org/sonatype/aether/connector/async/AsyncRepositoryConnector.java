@@ -21,6 +21,7 @@ import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilder;
 import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
+import org.gozer.client.aether.GozerRepositoryLayout;
 import org.sonatype.aether.ConfigurationProperties;
 import org.sonatype.aether.RepositoryCache;
 import org.sonatype.aether.RepositorySystemSession;
@@ -98,6 +99,8 @@ class AsyncRepositoryConnector
     private final AtomicBoolean closed = new AtomicBoolean( false );
 
     private final RepositoryLayout layout = new MavenDefaultLayout();
+    
+    private final RepositoryLayout gozerLayout = new GozerRepositoryLayout();
 
     private final TransferListener listener;
 
@@ -393,9 +396,13 @@ class AsyncRepositoryConnector
 
         for ( MetadataDownload download : metadataDownloads )
         {
-            String resource = layout.getPath( download.getMetadata() ).getPath();
-            resource = resource.replace("maven-metadata","gozer-metadata"); //Hack
-            resource = resource.substring(0,resource.length()-4)+".zip"; //Hack
+            String resource = "";
+            if(useGozer){
+                resource = gozerLayout.getPath(download.getMetadata()).getPath();
+            } else {
+                resource = layout.getPath( download.getMetadata() ).getPath();
+            }
+
             GetTask<?> task =
                 new GetTask<MetadataTransfer>( resource, download.getFile(), download.getChecksumPolicy(), latch,download, METADATA, false,download.getRepositories() );
             tasks.add( task );
@@ -405,7 +412,7 @@ class AsyncRepositoryConnector
         for ( ArtifactDownload download : artifactDownloads )
         {
             String resource = layout.getPath( download.getArtifact() ).getPath();
-            resource = resource.substring(0,resource.length()-4)+".zip"; //Hack
+            //resource = resource.substring(0,resource.length()-4)+".zip"; //Hack
 
             GetTask<?> task =
                 new GetTask<ArtifactTransfer>( resource, download.isExistenceCheck() ? null : download.getFile(),
@@ -780,14 +787,13 @@ class AsyncRepositoryConnector
                             handleResponseCode( uri, response.getStatusCode(), response.getStatusText() );
 
                             if(useGozer){
-                                System.out.println("GozerDowl "+uri+" "+fileLockCompanion.getFile().getAbsolutePath());
+                                System.out.println("GozerDowl " + uri + " ");
 
                               //  GozerVirtualFile
                                 
                             }
                             
-                            System.out.println("Helloooo!!!");
-                            
+
                             
                             if ( !ignoreChecksum )
                             {

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.gozer.client.aether.GozerMetadata;
 import org.sonatype.aether.RequestTrace;
 import org.sonatype.aether.SyncContext;
 import org.sonatype.aether.RepositoryEvent.EventType;
@@ -193,6 +194,7 @@ public class DefaultMetadataResolver
 
             MetadataResult result = new MetadataResult( request );
             results.add( result );
+            request.setMetadata(new GozerMetadata(request.getMetadata()));
 
             Metadata metadata = request.getMetadata();
             RemoteRepository repository = request.getRepository();
@@ -200,7 +202,6 @@ public class DefaultMetadataResolver
             if ( repository == null )
             {
                 LocalRepository localRepo = session.getLocalRepositoryManager().getRepository();
-
                 metadataResolving( session, trace, metadata, localRepo );
 
                 File localFile = getLocalFile( session, metadata );
@@ -240,6 +241,7 @@ public class DefaultMetadataResolver
                 {
                     metadata = metadata.setFile( metadataFile );
                     result.setMetadata( metadata );
+
                 }
                 else
                 {
@@ -363,6 +365,7 @@ public class DefaultMetadataResolver
                 LocalMetadataRequest localRequest =
                     new LocalMetadataRequest( metadata, task.request.getRepository(), task.request.getRequestContext() );
                 File metadataFile = session.getLocalRepositoryManager().find( session, localRequest ).getFile();
+                
                 if ( metadataFile != null )
                 {
                     metadata = metadata.setFile( metadataFile );
@@ -537,6 +540,7 @@ public class DefaultMetadataResolver
         public void run()
         {
             Metadata metadata = request.getMetadata();
+                        
             RemoteRepository requestRepository = request.getRepository();
 
             metadataDownloading( session, trace, metadata, requestRepository );
@@ -552,7 +556,10 @@ public class DefaultMetadataResolver
                 MetadataDownload download = new MetadataDownload();
                 download.setMetadata( metadata );
                 download.setRequestContext( request.getRequestContext() );
-                download.setFile( metadataFile );
+
+                metadata.setFile(metadataFile);
+                download.setFile( metadata.getFile() );
+
                 download.setChecksumPolicy( RepositoryPolicy.CHECKSUM_POLICY_IGNORE );
                 download.setRepositories( repositories );
                 RepositoryConnector connector =
@@ -560,8 +567,6 @@ public class DefaultMetadataResolver
                 try
                 {
                     connector.get( null, Arrays.asList( download ) );
-                   // System.out.println("After donwload "+download.getTrace().getData());
-                    
                 }
                 finally
                 {
