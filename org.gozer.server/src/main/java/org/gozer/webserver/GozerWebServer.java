@@ -1,5 +1,7 @@
 package org.gozer.webserver;
 
+import Acme.Serve.FileServlet;
+
 import java.io.File;
 
 /**
@@ -20,14 +22,29 @@ public class GozerWebServer implements Runnable {
         properties.setProperty(Acme.Serve.Serve.ARG_NOHUP, "nohup");
         srv.arguments = properties;
 
-
+/*
         Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
         aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath()));
         srv.setMappingTable(aliases);
         srv.addDefaultServlets(null);
+*/
+        srv.addDefaultServlets(null);
+
+        FileServlet fservlet = new FileServlet();
+        srv.addServlet("/files/*",fservlet);
+
+        Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
+        aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath()));
+        srv.setMappingTable(aliases);
+
+
+
 
         GozerServlet gozerServlet = new GozerServlet();
         srv.addServlet("/gozer/*",gozerServlet);
+
+
+
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
