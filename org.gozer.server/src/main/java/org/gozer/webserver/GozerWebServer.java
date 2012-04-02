@@ -1,8 +1,11 @@
 package org.gozer.webserver;
 
 import Acme.Serve.FileServlet;
+import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 
 import java.io.File;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,11 +42,16 @@ public class GozerWebServer implements Runnable {
 
 
 
-
         GozerServlet gozerServlet = new GozerServlet();
         srv.addServlet("/gozer/*",gozerServlet);
 
 
+        SpringServlet jerseyServlet = new SpringServlet();
+
+        Hashtable initParam = new Hashtable();
+        initParam.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
+
+        srv.addServlet("/json/*", jerseyServlet, initParam, "true");
 
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
