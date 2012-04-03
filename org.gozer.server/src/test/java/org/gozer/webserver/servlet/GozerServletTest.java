@@ -10,11 +10,12 @@ import org.gozer.webserver.GozerInternalServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -25,6 +26,8 @@ import static org.junit.Assert.assertEquals;
  * Time: 01:26
  */
 public class GozerServletTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(GozerServletTest.class);
 
     private GozerInternalServer srv;
     private Thread serverThread;
@@ -73,26 +76,59 @@ public class GozerServletTest {
 
 
             if (statusCode != HttpStatus.SC_OK) {
-                System.err.println("Method failed: " + method.getStatusLine());
+                logger.error("Method failed: " + method.getStatusLine());
             }
 
             // Read the response body.
-            byte[] responseBody = method.getResponseBody();
+            InputStream responseBodyStream = method.getResponseBodyAsStream();
 
             // Deal with the response.
             // Use caution: ensure correct character encoding and is not binary data
-            System.out.println(new String(responseBody));
+//            logger.info("response : {}", convertStreamToString(responseBodyStream));
+
+            File file = new File("metadata.txt");
+            FileWriter writer = new FileWriter(file);
+            writer.write(convertStreamToString(responseBodyStream));
+            writer.close();
+
 
         } catch (HttpException e) {
-            System.err.println("Fatal protocol violation: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Fatal protocol violation: ", e);
         } catch (IOException e) {
-            System.err.println("Fatal transport error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Fatal transport error: ", e);
         } finally {
             // Release the connection.
             method.releaseConnection();
         }
     }
+
+    public String convertStreamToString(InputStream is)
+            throws IOException {
+        /*
+         * To convert the InputStream to String we use the
+         * Reader.read(char[] buffer) method. We iterate until the
+         * Reader return -1 which means there's no more data to
+         * read. We use the StringWriter class to produce the string.
+         */
+        if (is != null) {
+            Writer writer = new StringWriter();
+
+            char[] buffer = new char[1024];
+            try {
+                Reader reader = new BufferedReader(
+                        new InputStreamReader(is, "UTF-8"));
+                int n;
+                while ((n = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, n);
+                }
+            } finally {
+                is.close();
+            }
+            return writer.toString();
+        } else {
+            return "";
+        }
+    }
+
 
 }
