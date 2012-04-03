@@ -47,11 +47,8 @@ public class GozerDeployServlet extends HttpServlet {
     }
 
     private boolean isAuthenticate (HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        System.out.println("try to check authentication parameters");
         String auth = req.getHeader( "Authorization" );
-
         if (auth != null) {
-
             final int index = auth.indexOf(' ');
             if (index > 0) {
                 final String[] credentials = new String(Base64.decode(auth.substring(index)), "UTF-8").split(":");

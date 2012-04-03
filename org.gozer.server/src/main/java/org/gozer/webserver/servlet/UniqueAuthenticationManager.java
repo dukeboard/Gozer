@@ -12,12 +12,11 @@ import org.gozer.webserver.servlet.api.Authentication;
  */
 public class UniqueAuthenticationManager implements Authentication {
 
-	private final String user = "kevoreedeploy";
-	private final String password = "kevoreedeploy35";
+	private final String user = "gozer";
+	private final String password = "gozer";
 
 	@Override
 	public boolean authenticate (String login, String credentials) {
-		System.out.println("toto is the user and titi is the password");
 		return user.equals(login) && password.equals(credentials);
 	}
 }
