@@ -10,6 +10,7 @@ import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.collection.CollectRequest;
+import org.sonatype.aether.collection.CollectResult;
 import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
 import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
@@ -20,6 +21,8 @@ import org.sonatype.aether.metadata.Metadata;
 import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
+import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.resolution.MetadataRequest;
 import org.sonatype.aether.resolution.MetadataResult;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
@@ -75,6 +78,12 @@ public class GozerServlet extends HttpServlet {
 
         GozerServletHelper gozerHelper = new GozerServletHelper();
 
+
+
+
+
+
+
         RepositorySystem repSys = gozerHelper.newRepositorySystem();
 
         RepositorySystemSession session = gozerHelper.newSession(repSys);
@@ -92,11 +101,21 @@ public class GozerServlet extends HttpServlet {
 
         DependencyNode node = null;
         try {
-            node = repSys.collectDependencies(session, collectRequest).getRoot();
+            CollectResult collectResult = repSys.collectDependencies(session, collectRequest);
+            logger.debug("collectResult : {}",collectResult);
+            node = collectResult.getRoot();
             logger.debug("node : {}", node);
 
         } catch (DependencyCollectionException e) {
-           logger.error("Error : ",e);
+            logger.error("Error : ",e);
+        }
+
+        DependencyRequest dependencyRequest = new DependencyRequest( node, null );
+
+        try {
+            repSys.resolveDependencies( session, dependencyRequest  );
+        } catch (DependencyResolutionException e) {
+            logger.error("Error : ",e);
         }
 
         PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
@@ -104,8 +123,10 @@ public class GozerServlet extends HttpServlet {
         logger.info("classpath : {}", nlg.getClassPath());
 
         OutputStream os = resp.getOutputStream();
+        logger.info("dependencies : {}", nlg.getDependencies(false));
 
         for (Dependency dep : nlg.getDependencies(false)) {
+            logger.info("metadataResults 1:");
             List<MetadataResult> results = null;
             Collection<MetadataRequest> metadataRequests = new ArrayList<MetadataRequest>();
             metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, ""));
@@ -119,7 +140,7 @@ public class GozerServlet extends HttpServlet {
 
 
 
-//        resp.getOutputStream().println("DaFuck");
+        resp.getOutputStream().println("DaFuck");
         resp.getOutputStream().close();
     }
 }
