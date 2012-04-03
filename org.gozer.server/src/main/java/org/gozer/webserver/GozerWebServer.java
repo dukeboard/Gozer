@@ -1,7 +1,8 @@
 package org.gozer.webserver;
 
-import Acme.Serve.FileServlet;
 import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
+import org.gozer.webserver.servlet.GozerDispatcherServlet;
+import org.gozer.webserver.servlet.GozerServlet;
 
 import java.io.File;
 import java.util.Hashtable;
@@ -14,6 +15,8 @@ import java.util.Map;
  * Time: 20:49
  */
 public class GozerWebServer implements Runnable {
+
+    private GozerInternalServer srv = null;
 
     File rootFileSystem = null;
 
@@ -33,12 +36,22 @@ public class GozerWebServer implements Runnable {
 */
         srv.addDefaultServlets(null);
 
+        GozerDispatcherServlet dispatcherServlet = new GozerDispatcherServlet(this.rootFileSystem);
+        srv.addServlet("/*",dispatcherServlet);
+        Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
+        aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath()));
+        srv.setMappingTable(aliases);
+
+
+
+          /*
         FileServlet fservlet = new FileServlet();
         srv.addServlet("/files/*",fservlet);
 
         Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
         aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath()));
-        srv.setMappingTable(aliases);
+        srv.setMappingTable(aliases);      */
+
 
 
 
@@ -60,14 +73,6 @@ public class GozerWebServer implements Runnable {
                 srv.destroyAllServlets();
             }
         }));
-    }
-
-    private GozerInternalServer srv = null;
-
-    class GozerInternalServer extends Acme.Serve.Serve {
-        public void setMappingTable(PathTreeDictionary mappingtable) {
-            super.setMappingTable(mappingtable);
-        }
     }
 
     public void run() {
