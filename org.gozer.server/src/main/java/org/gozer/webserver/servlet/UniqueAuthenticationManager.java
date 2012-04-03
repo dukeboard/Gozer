@@ -12,8 +12,8 @@ import org.gozer.webserver.servlet.api.Authentication;
  */
 public class UniqueAuthenticationManager implements Authentication {
 
-	private final String user = "toto";
-	private final String password = "titi";
+	private final String user = "kevoreedeploy";
+	private final String password = "kevoreedeploy35";
 
 	@Override
 	public boolean authenticate (String login, String credentials) {
