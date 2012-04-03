@@ -43,7 +43,9 @@ public class GozerDeployServlet extends HttpServlet {
             File targetFile = new File(rootRepository, req.getRequestURI());
             FileNIOHelper.createParentDirs(targetFile);
             FileNIOHelper.copyFile(req.getInputStream(), targetFile);
-        }
+        } else {
+			resp.sendError(401);
+		}
     }
 
     private boolean isAuthenticate (HttpServletRequest req, HttpServletResponse resp) throws IOException {
