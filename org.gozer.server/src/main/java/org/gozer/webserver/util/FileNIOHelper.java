@@ -17,9 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -35,30 +37,44 @@ public class FileNIOHelper {
 
     private static Logger logger = LoggerFactory.getLogger(FileNIOHelper.class);
 
-    public static File resolveBundleJar(Long bundleID, File bundleWorkingDir) {
-        String versionDef = "version0.0";
+
+    public static void copyFileToStream(InputStream sourceFile, OutputStream dest) throws IOException {
+        ReadableByteChannel source = null;
+        WritableByteChannel destination = null;
         try {
-            File bundleRevisionCounter = new File(bundleWorkingDir.getAbsolutePath() + File.separator + "bundle" + bundleID + File.separator + "refresh.counter");
-            if (bundleRevisionCounter.exists()) {
-                FileReader fr = new FileReader(bundleRevisionCounter);
-                char vers = (char) fr.read();
-                versionDef = "version" + vers + "." + vers;
-                fr.close();
-            } /*else {
-                logger.warn("revision file does not exist");
-            }  */
-            File jarFile = new File(bundleWorkingDir.getAbsolutePath() + File.separator + "bundle" + bundleID + File.separator + versionDef + File.separator + "bundle.jar");
-            if (jarFile.exists()) {
-                return jarFile;
-            } else {
-                logger.warn("File not found {}", jarFile.getAbsolutePath());
-                return null;
+            source = Channels.newChannel(sourceFile);
+            destination = Channels.newChannel(dest);
+            fastChannelCopy(source, destination);
+        } finally {
+            if (source != null) {
+                source.close();
             }
-        } catch (Exception e) {
-            logger.warn("Error while trying to get jar cache", e);
-            return null;
+            if (destination != null) {
+                destination.close();
+            }
         }
     }
+
+    public static void fastChannelCopy(final ReadableByteChannel src, final WritableByteChannel dest) throws IOException {
+        final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+        while (src.read(buffer) != -1) {
+            // prepare the buffer to be drained
+            buffer.flip();
+            // write to the channel, may block
+            dest.write(buffer);
+            // If partial transfer, shift remainder down
+            // If buffer is empty, same as doing clear()
+            buffer.compact();
+        }
+        // EOF will leave buffer in fill state
+        buffer.flip();
+        // make sure the buffer is fully drained.
+        while (buffer.hasRemaining()) {
+            dest.write(buffer);
+        }
+    }
+
+
 
     public static void copyFile(InputStream sourceFile, File destFile) throws IOException {
         if (!destFile.exists()) {

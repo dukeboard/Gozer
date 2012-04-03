@@ -27,6 +27,7 @@ public class GozerDispatcherServlet extends HttpServlet {
         gozerServlet = new GozerServlet();
         gozerDeployServlet = new GozerDeployServlet();
         gozerDeployServlet.setRootRepository(rootM2);
+		gozerDeployServlet.setAuthenticationManager(new UniqueAuthenticationManager());
     }
 
     @Override

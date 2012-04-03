@@ -27,7 +27,7 @@ public class AetherStubRequest {
         java.util.List<RemoteRepository> repositories = new java.util.ArrayList();
         RemoteRepository repo = new RemoteRepository();
         repo.setId("kevGozer");
-        repo.setUrl("gozer:http://localhost:8080/gozer");
+        repo.setUrl("gozer:http://localhost:8080/");
         repo.setContentType("default");
         repositories.add(repo);
         artifactRequest.setRepositories(repositories);

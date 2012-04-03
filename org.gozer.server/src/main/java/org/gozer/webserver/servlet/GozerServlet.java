@@ -2,6 +2,7 @@ package org.gozer.webserver.servlet;
 
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
+import org.gozer.webserver.util.FileNIOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.ConfigurationProperties;
@@ -44,7 +45,7 @@ import static org.gozer.webserver.servlet.GozerServletHelper.*;
 
 /**
  * Created by IntelliJ IDEA.
- * User: duke
+ * User: duke , sebastien
  * Date: 28/03/12
  * Time: 22:01
  */
@@ -56,6 +57,12 @@ public class GozerServlet extends HttpServlet {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         logger.info("uri = {}", req.getRequestURI());
+
+        FileNIOHelper.copyFileToStream(this.getClass().getClassLoader().getResourceAsStream("stub.zip"), resp.getOutputStream());
+        resp.getOutputStream().close();
+        if(true) return ;
+
+
 
         /**
          * 1 - le client demande au serveur pour demander un artefact sur GozerServlet avec un discrimant (classifier ou packaging)
@@ -110,12 +117,15 @@ public class GozerServlet extends HttpServlet {
             metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, ""));
             results = repSys.resolveMetadata(session, metadataRequests);
             logger.info("metadataResults : {}",results);
-            FileInputStream fileInputStream = new FileInputStream(results.get(0).getMetadata().getFile());
+            for (MetadataResult result : results) {
+                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
+                FileNIOHelper.copyFileToStream(fileInputStream, os);
+            }
         }
 
 
 
-        resp.getOutputStream().println("DaFuck");
-
+//        resp.getOutputStream().println("DaFuck");
+        resp.getOutputStream().close();
     }
 }
