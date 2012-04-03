@@ -58,9 +58,9 @@ public class GozerServlet extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         logger.info("uri = {}", req.getRequestURI());
 
-        FileNIOHelper.copyFileToStream(this.getClass().getClassLoader().getResourceAsStream("stub.zip"), resp.getOutputStream());
-        resp.getOutputStream().close();
-        if(true) return ;
+//        FileNIOHelper.copyFileToStream(this.getClass().getClassLoader().getResourceAsStream("stub.zip"), resp.getOutputStream());
+//        resp.getOutputStream().close();
+//        if(true) return ;
 
 
 
@@ -77,32 +77,26 @@ public class GozerServlet extends HttpServlet {
 
         RepositorySystem repSys = gozerHelper.newRepositorySystem();
 
-//        Artifact artifact = getArtifactFromRequest(req.getPathInfo());
-//
-//        ArtifactRequest artifactRequest = new ArtifactRequest();
-//        artifactRequest.setArtifact(artifact);
-//        artifactRequest.setRepositories(getRepositoriesFromRequest(req));
-//
-//        logger.info("Resolving artifact");
-//        try {
-//            ArtifactResult artefactResult = repSys.resolveArtifact(newSession(repSys), artifactRequest);
-//        } catch (ArtifactResolutionException e) {
-//            logger.error("Error :", e);
-//        }
-
         RepositorySystemSession session = gozerHelper.newSession(repSys);
         Artifact artifact = gozerHelper.getArtifactFromRequest(req.getPathInfo());
         Dependency dependency = new Dependency(artifact, "compile");
-        RemoteRepository repo = gozerHelper.getRepositoriesFromRequest(req).get(0);
-//
+        logger.debug("dependency : {}", dependency);
+        List<RemoteRepository> repositories = gozerHelper.getRepositoriesFromRequest(req);
+        RemoteRepository repo = repositories.get(0);
+        logger.debug("repositories : {}", repositories);
+
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRoot(dependency);
-        collectRequest.setRepositories(gozerHelper.getRepositoriesFromRequest(req));
+        collectRequest.setRepositories(repositories);
+        logger.debug("collectRequest : {}", collectRequest);
+
         DependencyNode node = null;
         try {
             node = repSys.collectDependencies(session, collectRequest).getRoot();
+            logger.debug("node : {}", node);
+
         } catch (DependencyCollectionException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+           logger.error("Error : ",e);
         }
 
         PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
