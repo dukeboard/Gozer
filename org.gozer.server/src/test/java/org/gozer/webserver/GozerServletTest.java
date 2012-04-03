@@ -1,6 +1,5 @@
 package org.gozer.webserver;
 
-import org.gozer.webserver.GozerServlet;
 import org.junit.Test;
 
 /**

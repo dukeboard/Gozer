@@ -1,4 +1,4 @@
-package org.gozer.webserver;
+package org.gozer.webserver.servlet;
 
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
@@ -15,11 +15,9 @@ import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
 import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.impl.internal.EnhancedLocalRepositoryManagerFactory;
-import org.sonatype.aether.impl.internal.Slf4jLogger;
 import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.repository.RepositoryPolicy;
-import org.sonatype.aether.resolution.*;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.sonatype.aether.util.artifact.DefaultArtifact;

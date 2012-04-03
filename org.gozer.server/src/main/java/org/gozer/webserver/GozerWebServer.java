@@ -1,6 +1,6 @@
 package org.gozer.webserver;
 
-import Acme.Serve.FileServlet;
+import org.gozer.webserver.servlet.GozerDispatcherServlet;
 
 import java.io.File;
 
@@ -30,6 +30,15 @@ public class GozerWebServer implements Runnable {
 */
         srv.addDefaultServlets(null);
 
+        GozerDispatcherServlet dispatcherServlet = new GozerDispatcherServlet(this.rootFileSystem);
+        srv.addServlet("/*",dispatcherServlet);
+        Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
+        aliases.put("/*", new java.io.File(rootFileSystem.getAbsolutePath()));
+        srv.setMappingTable(aliases);
+
+
+
+          /*
         FileServlet fservlet = new FileServlet();
         srv.addServlet("/files/*",fservlet);
 
@@ -42,7 +51,7 @@ public class GozerWebServer implements Runnable {
 
         GozerServlet gozerServlet = new GozerServlet();
         srv.addServlet("/gozer/*",gozerServlet);
-
+              */
 
 
 
