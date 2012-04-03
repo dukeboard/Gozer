@@ -115,7 +115,7 @@ public class GozerServlet extends HttpServlet {
 
         String[] repos = header.split(",");
 
-        List<RemoteRepository> repositories = new ArrayList();
+        List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
         if (repos.length > 0) {
             for (String repo : repos) {
                 String[] repoInfo = repo.split("=");
@@ -157,9 +157,9 @@ public class GozerServlet extends HttpServlet {
         session.setConfigProperty("aether.connector.ahc.provider", "jdk");
         //DEFAULT VALUE
         //TODO CHEKK THIS HACK
-        session.setLocalRepositoryManager(system.newLocalRepositoryManager(new LocalRepository(System.getProperty("user.home").toString() + "/.m2/repository")));
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(new LocalRepository(System.getProperty("user.home") + "/.m2/repository")));
         //TRY TO FOUND MAVEN CONFIGURATION
-        File configFile = new File(System.getProperty("user.home").toString() + File.separator + ".m2" + File.separator + "settings.xml");
+        File configFile = new File(System.getProperty("user.home") + File.separator + ".m2" + File.separator + "settings.xml");
         session.getConfigProperties().put(ConfigurationProperties.REQUEST_TIMEOUT, 2000);
         session.getConfigProperties().put(ConfigurationProperties.CONNECT_TIMEOUT, 1000);
 
