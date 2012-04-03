@@ -35,11 +35,6 @@ public class GozerServletTest {
         // setting aliases, for an optional file servlet
         Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
         srv.setMappingTable(aliases);
-//        // setting properties for the server, and exchangeable Acceptors
-//        java.util.Properties properties = new java.util.Properties();
-//        properties.put("port", 80);
-//        properties.setProperty(Acme.Serve.Serve.ARG_NOHUP, "nohup");
-//        srv.arguments = properties;
         srv.addServlet("/gozer/*", new GozerServlet()); // optional
 
         serverThread = new Thread(new Runnable() {
