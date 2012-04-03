@@ -2,6 +2,7 @@ package org.gozer.webserver.servlet;
 
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
+import org.gozer.webserver.util.FileNIOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.ConfigurationProperties;
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +48,14 @@ public class GozerServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
         logger.info(req.getRequestURI());
+
+        FileNIOHelper.copyFileToStream(this.getClass().getClassLoader().getResourceAsStream("stub.zip"),resp.getOutputStream());
+        resp.getOutputStream().close();
+        if(true) return ;
+
+
 
         /**
          * 1 - le client demande au serveur pour demander un artefact sur GozerServlet avec un discrimant (classifier ou packaging)

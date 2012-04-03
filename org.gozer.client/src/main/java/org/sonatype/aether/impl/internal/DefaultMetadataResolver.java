@@ -21,10 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.gozer.client.aether.GozerMetadata;
 import org.sonatype.aether.RequestTrace;
 import org.sonatype.aether.SyncContext;
 import org.sonatype.aether.RepositoryEvent.EventType;
@@ -182,6 +180,9 @@ public class DefaultMetadataResolver
     private List<MetadataResult> resolve( RepositorySystemSession session,
                                           Collection<? extends MetadataRequest> requests )
     {
+
+        System.out.println("daFuck Resulver META DATA");
+
         List<MetadataResult> results = new ArrayList<MetadataResult>( requests.size() );
 
         List<ResolveTask> tasks = new ArrayList<ResolveTask>( requests.size() );
@@ -194,7 +195,7 @@ public class DefaultMetadataResolver
 
             MetadataResult result = new MetadataResult( request );
             results.add( result );
-            request.setMetadata(new GozerMetadata(request.getMetadata()));
+            //request.setMetadata(new GozerMetadata(request.getMetadata()));
 
             Metadata metadata = request.getMetadata();
             RemoteRepository repository = request.getRepository();
@@ -234,6 +235,9 @@ public class DefaultMetadataResolver
             LocalMetadataResult lrmResult = lrm.find( session, localRequest );
 
             File metadataFile = lrmResult.getFile();
+
+
+            System.out.println("MetaDataFile = "+metadataFile.getAbsolutePath());
 
             if ( session.isOffline() )
             {
@@ -442,6 +446,9 @@ public class DefaultMetadataResolver
         event.setRepository( repository );
 
         repositoryEventDispatcher.dispatch( event );
+
+        System.out.println("DaFuck After Dispatch "+repository.getId());
+
     }
 
     private void metadataResolved( RepositorySystemSession session, RequestTrace trace, Metadata metadata,

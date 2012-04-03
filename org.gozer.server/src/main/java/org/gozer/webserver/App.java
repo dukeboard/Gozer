@@ -18,7 +18,7 @@ public class App {
     public static void main(String[] args) {
 
         String userDir = System.getProperty("user.home");
-        File userConfigPath = new File(userDir + File.separator + ".m2/gozer");
+        File userConfigPath = new File(userDir + File.separator + "gozer/repository");
         GozerWebServer webServer = new GozerWebServer(userConfigPath);
         Thread serverThread = new Thread(webServer);
         serverThread.start();
