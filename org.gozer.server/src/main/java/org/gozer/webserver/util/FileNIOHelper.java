@@ -50,7 +50,7 @@ public class FileNIOHelper {
                 source.close();
             }
             if (destination != null) {
-                destination.close();
+//                destination.close();
             }
         }
     }
