@@ -126,10 +126,9 @@ public class GozerServlet extends HttpServlet {
         logger.info("dependencies : {}", nlg.getDependencies(false));
 
         for (Dependency dep : nlg.getDependencies(false)) {
-            logger.info("metadataResults 1:");
             List<MetadataResult> results = null;
             Collection<MetadataRequest> metadataRequests = new ArrayList<MetadataRequest>();
-            metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, ""));
+            metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), dep.getArtifact().getVersion(), Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, "maven-metadata.xml"));
             results = repSys.resolveMetadata(session, metadataRequests);
             logger.info("metadataResults : {}",results);
             for (MetadataResult result : results) {
