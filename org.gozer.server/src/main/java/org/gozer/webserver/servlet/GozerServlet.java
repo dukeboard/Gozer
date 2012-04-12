@@ -43,8 +43,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 import static org.gozer.webserver.servlet.GozerServletHelper.*;
+import static org.gozer.webserver.util.FileNIOHelper.createZip;
 
 /**
  * Created by IntelliJ IDEA.
@@ -77,12 +79,6 @@ public class GozerServlet extends HttpServlet {
          */
 
         GozerServletHelper gozerHelper = new GozerServletHelper();
-
-
-
-
-
-
 
         RepositorySystem repSys = gozerHelper.newRepositorySystem();
 
@@ -125,17 +121,29 @@ public class GozerServlet extends HttpServlet {
         OutputStream os = resp.getOutputStream();
         logger.info("dependencies : {}", nlg.getDependencies(false));
 
+
+        Collection<File> metadataFiles = new ArrayList<File>();
+        // create the zip
+        ZipOutputStream zipOutputStream = new ZipOutputStream(os);
+
         for (Dependency dep : nlg.getDependencies(false)) {
             List<MetadataResult> results = null;
             Collection<MetadataRequest> metadataRequests = new ArrayList<MetadataRequest>();
-            metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), dep.getArtifact().getVersion(), Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, "maven-metadata.xml"));
+            metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), "maven-metadata.xml", Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, null));
+
             results = repSys.resolveMetadata(session, metadataRequests);
             logger.info("metadataResults : {}",results);
             for (MetadataResult result : results) {
-                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
-                FileNIOHelper.copyFileToStream(fileInputStream, os);
+                metadataFiles.add(result.getMetadata().getFile());
+                createZip("/home/sebastien/.m2/repository/", results, zipOutputStream);
+
+//                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
+//                FileNIOHelper.copyFileToStream(fileInputStream, os);
             }
         }
+
+
+//        zipOutputStream.close();
 
 
 

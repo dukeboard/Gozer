@@ -15,6 +15,8 @@ package org.gozer.webserver.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.aether.metadata.Metadata;
+import org.sonatype.aether.resolution.MetadataResult;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -22,9 +24,11 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Collection;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -188,6 +192,60 @@ public class FileNIOHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *  createZip do not close outputStream
+     * @param results
+     * @param outputStream
+     * @return       the outputStream with all files
+     */
+    public static ZipOutputStream createZip(String repo, Collection<MetadataResult> results, ZipOutputStream outputStream) {
+
+        // Create a buffer for reading the files
+        byte[] buf = new byte[1024];
+        try {
+
+            // Compress the files
+            for (MetadataResult result : results) {
+
+                logger.info("absolute path {}", result.getMetadata().getFile().getCanonicalPath());
+
+                Metadata metadata = result.getMetadata();
+
+                String relativeDirectoryFromRepoRoot = result.getMetadata().getFile().getParentFile().getAbsolutePath().replace(repo, "");
+
+                File file = new File(relativeDirectoryFromRepoRoot, metadata.getFile().getName());
+
+                logger.info("file name in zip : {}",file.getAbsolutePath());
+
+
+//                outputStream.putNextEntry(new ZipEntry(metadata.getGroupId()+File.separator));
+//                outputStream.putNextEntry(new ZipEntry(metadata.getGroupId()+File.separator+metadata.getArtifactId()));
+
+
+
+                FileInputStream in = new FileInputStream(metadata.getFile());
+
+                // Add ZIP entry to output stream.
+                outputStream.putNextEntry(new ZipEntry(metadata.getGroupId()+"-"+metadata.getArtifactId()+"-"+file.getName()));
+
+                // Transfer bytes from the file to the ZIP file
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    outputStream.write(buf, 0, len);
+                }
+
+                // Complete the entry
+                outputStream.closeEntry();
+                in.close();
+            }
+
+        } catch (IOException e) {
+            logger.error("Error in creating Zip",e);
+        }
+
+        return outputStream;
     }
 
 

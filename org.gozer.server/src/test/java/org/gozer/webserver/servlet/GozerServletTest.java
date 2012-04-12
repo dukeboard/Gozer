@@ -71,10 +71,6 @@ public class GozerServletTest {
             // Execute the method.
             int statusCode = client.executeMethod(method);
 
-
-
-
-
             if (statusCode != HttpStatus.SC_OK) {
                 logger.error("Method failed: " + method.getStatusLine());
             }
@@ -86,11 +82,10 @@ public class GozerServletTest {
             // Use caution: ensure correct character encoding and is not binary data
 //            logger.info("response : {}", convertStreamToString(responseBodyStream));
 
-            File file = new File("metadata.txt");
+            File file = new File("gozer-metadata.zip");
             FileWriter writer = new FileWriter(file);
             writer.write(convertStreamToString(responseBodyStream));
             writer.close();
-
 
         } catch (HttpException e) {
             logger.error("Fatal protocol violation: ", e);
@@ -102,8 +97,7 @@ public class GozerServletTest {
         }
     }
 
-    public String convertStreamToString(InputStream is)
-            throws IOException {
+    private String convertStreamToString(InputStream is) throws IOException {
         /*
          * To convert the InputStream to String we use the
          * Reader.read(char[] buffer) method. We iterate until the
