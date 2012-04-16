@@ -3,6 +3,7 @@ package org.gozer.webserver.servlet;
 import org.apache.maven.repository.internal.DefaultServiceLocator;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.gozer.webserver.util.FileNIOHelper;
+import org.gozer.webserver.util.ZipHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.ConfigurationProperties;
@@ -46,7 +47,6 @@ import java.util.List;
 import java.util.zip.ZipOutputStream;
 
 import static org.gozer.webserver.servlet.GozerServletHelper.*;
-import static org.gozer.webserver.util.FileNIOHelper.createZip;
 
 /**
  * Created by IntelliJ IDEA.
@@ -135,7 +135,9 @@ public class GozerServlet extends HttpServlet {
             logger.info("metadataResults : {}",results);
             for (MetadataResult result : results) {
                 metadataFiles.add(result.getMetadata().getFile());
-                createZip("/home/sebastien/.m2/repository/", results, zipOutputStream);
+               ZipHelper zipHelper = new ZipHelper();
+
+                zipHelper.createZip("/home/sebastien/.m2/repository/", results, zipOutputStream);
 
 //                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
 //                FileNIOHelper.copyFileToStream(fileInputStream, os);
