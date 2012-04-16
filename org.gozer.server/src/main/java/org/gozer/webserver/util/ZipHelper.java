@@ -22,13 +22,40 @@ public class ZipHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHelper.class);
 
 
+    private ZipOutputStream outputStream;
+
     public void init(OutputStream outputStream) {
         this.outputStream = new ZipOutputStream(outputStream);
     }
 
-    private ZipOutputStream outputStream;
+    /**
+     *  createZipFromMetadatas do not close outputStream
+     * @param results
+     * @return the outputStream with all files
+     */
+    public ZipOutputStream createZipFromMetadatas(Collection<MetadataResult> results) {
 
+        if (outputStream == null) {
+            throw new RuntimeException("Helper is not initialized : outputStream is null");
+        }
 
+        try {
+
+            // Compress the files
+            for (MetadataResult result : results) {
+
+                Metadata metadata = result.getMetadata();
+
+                addMetadaToZip(metadata);
+            }
+            outputStream.finish();
+
+        } catch (IOException e) {
+            LOGGER.error("Error in creating Zip",e);
+        }
+
+        return outputStream;
+    }
 
     public void addMetadaToZip(Metadata metadata) {
         addFileToZip(metadata.getGroupId()+File.separator+metadata.getArtifactId()+File.separator, metadata.getFile());
@@ -84,71 +111,6 @@ public class ZipHelper {
 
         return null;
 
-    }
-
-//    public ZipOutputStream createZipFromMetadatas(Collection<File> files) {
-//        // Create a buffer for reading the files
-//        byte[] buf = new byte[1024];
-//        LOGGER.debug("files : {}",files);
-//
-//        if (files == null || files.isEmpty()) {
-//            LOGGER.debug("returning a null outputStream");
-//
-//            return null;
-//        }
-//
-//        try {
-//
-//            // Compress the files
-//            for (File file : files) {
-//
-//                addFileToZip(file);
-//            }
-//
-//            outputStream.finish();
-//
-//            return outputStream;
-//
-//        } catch (IOException e) {
-//            LOGGER.error("Error in creating Zip",e);
-//        }
-//
-//        return null;
-//
-//    }
-
-
-
-
-
-    /**
-     *  createZipFromMetadatas do not close outputStream
-     * @param results
-     * @return       the outputStream with all files
-     */
-    public ZipOutputStream createZipFromMetadatas(Collection<MetadataResult> results) {
-
-        if (outputStream == null) {
-            throw new RuntimeException("Helper is not initialized : outputStream is null");
-        }
-
-        try {
-
-            // Compress the files
-            for (MetadataResult result : results) {
-
-                Metadata metadata = result.getMetadata();
-
-                addMetadaToZip(metadata);
-            }
-            outputStream.finish();
-
-        } catch (IOException e) {
-            LOGGER.error("Error in creating Zip",e);
-        }
-
-
-        return outputStream;
     }
 
 }

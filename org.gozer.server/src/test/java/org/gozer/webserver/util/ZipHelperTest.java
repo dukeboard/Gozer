@@ -4,8 +4,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.aether.metadata.Metadata;
+import org.sonatype.aether.resolution.MetadataRequest;
+import org.sonatype.aether.resolution.MetadataResult;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,6 +20,8 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,8 +37,9 @@ public class ZipHelperTest {
 
 
     private ZipHelper helper;
-    private List<File> files;
+    private List<MetadataResult> metadatas;
     private File outputArchive;
+    private MetadataResult metadata;
 
 
     @Before
@@ -40,9 +48,10 @@ public class ZipHelperTest {
 
         File file = new File("org.gozer.server/src/test/resources", "test.txt");
 
-        files = new ArrayList<File>();
+        metadata = mock(MetadataResult.class);
+        metadatas = new ArrayList<MetadataResult>();
 
-        files.add(file);
+        metadatas.add(metadata);
 
         outputArchive = new File("output-test.zip");
 
@@ -50,34 +59,18 @@ public class ZipHelperTest {
 
         helper.init(outputStream);
 
-
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void should_return_null_with_a_null_list() {
-        ZipOutputStream zos = helper.createZipFromMetadatas(null);
-
-        assertNull("outputStream should be null",zos);
-
+        helper.createZipFromMetadatas(null);
     }
 
-//    @Ignore
-//    @Test
-//    public void should_return_null_with_an_empty_list() {
-//        ZipOutputStream zos = helper.createZipFromMetadatas(new ArrayList<File>());
-//
-//        assertNull("outputStream should be null",zos);
-//
-//    }
-//
-//    @Ignore
-//    @Test
-//    public void should_create_a_file_with_zip_extension() throws FileNotFoundException {
-//        ZipOutputStream zos = helper.createZipFromMetadatas(files);
-//
-//        assertTrue(outputArchive.exists());
-//
-//    }
+    @Test(expected = RuntimeException.class)
+    public void should_return_null_if_not_initialize() {
+        ZipHelper zipHelper = new ZipHelper();
+        zipHelper.createZipFromMetadatas(new ArrayList<MetadataResult>());
+    }
 
     @Ignore
     @Test
@@ -115,16 +108,17 @@ public class ZipHelperTest {
         assertTrue(isValid(new File("test.zip")));
     }
 
-//    @Test
-//    public void should_create_a_zip_with_one_file() throws IOException {
-//
-//        helper.createZipFromMetadatas(files);
-//
-//        assertTrue(outputArchive.exists());
-//
-//        assertTrue(isValid(outputArchive));
-//
-//    }
+    @Ignore
+    @Test
+    public void should_create_a_zip_with_one_file() throws IOException {
+
+        helper.createZipFromMetadatas(metadatas);
+
+        assertTrue(outputArchive.exists());
+
+        assertTrue(isValid(outputArchive));
+
+    }
 
 
     @After
