@@ -1,34 +1,22 @@
 package org.gozer.webserver.servlet;
 
-import org.apache.maven.repository.internal.DefaultServiceLocator;
-import org.apache.maven.repository.internal.MavenRepositorySystemSession;
-import org.gozer.webserver.util.FileNIOHelper;
 import org.gozer.webserver.util.ZipHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonatype.aether.ConfigurationProperties;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.collection.CollectRequest;
 import org.sonatype.aether.collection.CollectResult;
 import org.sonatype.aether.collection.DependencyCollectionException;
-import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
-import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
 import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
-import org.sonatype.aether.impl.internal.EnhancedLocalRepositoryManagerFactory;
 import org.sonatype.aether.metadata.Metadata;
-import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.DependencyRequest;
 import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.resolution.MetadataRequest;
 import org.sonatype.aether.resolution.MetadataResult;
-import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
-import org.sonatype.aether.spi.localrepo.LocalRepositoryManagerFactory;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 import org.sonatype.aether.util.metadata.DefaultMetadata;
 
@@ -37,16 +25,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.zip.ZipOutputStream;
-
-import static org.gozer.webserver.servlet.GozerServletHelper.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -123,8 +106,6 @@ public class GozerServlet extends HttpServlet {
 
 
         Collection<File> metadataFiles = new ArrayList<File>();
-        // create the zip
-        ZipOutputStream zipOutputStream = new ZipOutputStream(os);
 
         for (Dependency dep : nlg.getDependencies(false)) {
             List<MetadataResult> results = null;
@@ -137,7 +118,8 @@ public class GozerServlet extends HttpServlet {
                 metadataFiles.add(result.getMetadata().getFile());
                ZipHelper zipHelper = new ZipHelper();
 
-                zipHelper.createZip("/home/sebastien/.m2/repository/", results, zipOutputStream);
+                zipHelper.init(os);
+                zipHelper.createZipFromMetadatas(results);
 
 //                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
 //                FileNIOHelper.copyFileToStream(fileInputStream, os);
