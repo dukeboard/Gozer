@@ -38,6 +38,15 @@ public class GozerServlet extends HttpServlet {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GozerServlet.class);
     private static final String REPOSITORIES = "Repositories";
+    public static final String COMPILE = "compile";
+    public static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+    private final GozerServletHelper gozerHelper;
+    private final ZipHelper zipHelper;
+
+    public GozerServlet() {
+        gozerHelper = new GozerServletHelper();
+        zipHelper = new ZipHelper();
+    }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -58,23 +67,83 @@ public class GozerServlet extends HttpServlet {
          * 6 - le serveur lui renvoie zippé d'un bloc
          */
 
-        GozerServletHelper gozerHelper = new GozerServletHelper();
-
         RepositorySystem repSys = gozerHelper.newRepositorySystem();
 
         RepositorySystemSession session = gozerHelper.newSession(repSys);
         Artifact artifact = gozerHelper.getArtifactFromRequest(req.getPathInfo());
-        Dependency dependency = new Dependency(artifact, "compile");
+        Dependency dependency = new Dependency(artifact, COMPILE); // TODO handle scope
         LOGGER.debug("dependency : {}", dependency);
+
         List<RemoteRepository> repositories = gozerHelper.getRepositoriesFromRequest(req);
-        RemoteRepository repo = repositories.get(0);
-        LOGGER.debug("repositories : {}", repositories);
 
-        CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot(dependency);
-        collectRequest.setRepositories(repositories);
-        LOGGER.debug("collectRequest : {}", collectRequest);
 
+
+        CollectRequest collectRequest = buildCollectRequest(dependency, repositories);
+
+        DependencyNode node = getNodeFromCollectRequest(repSys, session, collectRequest);
+
+        DependencyResult dependencyResult = resolveDependencies(repSys, session, node);
+
+
+        OutputStream os = resp.getOutputStream();
+
+        PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
+        node.accept(nlg);
+        LOGGER.info("classpath : {}", nlg.getClassPath());
+
+        LOGGER.info("dependencies : {}", nlg.getDependencies(false));
+
+        for (Dependency dep : nlg.getDependencies(false)) {
+            List<MetadataResult> results = resolveMetadata(repSys, session, repositories, dep);
+            sendZipOfMetadataIntoStream(os, results);
+        }
+
+
+//        zipOutputStream.close();
+
+
+
+        resp.getOutputStream().close();
+    }
+
+    void sendZipOfMetadataIntoStream(OutputStream os, List<MetadataResult> results) {
+//        Collection<File> metadataFiles = new ArrayList<File>();
+
+        for (MetadataResult result : results) {
+//            metadataFiles.add(result.getMetadata().getFile());
+            zipHelper.init(os);
+            zipHelper.createZipFromMetadatas(results);
+
+//                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
+//                FileNIOHelper.copyFileToStream(fileInputStream, os);
+        }
+    }
+
+    List<MetadataResult> resolveMetadata(RepositorySystem repSys, RepositorySystemSession session, List<RemoteRepository> repositories, Dependency dep) {
+        List<MetadataResult> results = null;
+        Collection<MetadataRequest> metadataRequests = new ArrayList<MetadataRequest>();
+        DefaultMetadata defaultMetadata = new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), MAVEN_METADATA_XML, Metadata.Nature.RELEASE_OR_SNAPSHOT);
+        metadataRequests.add(new MetadataRequest(defaultMetadata, repositories.get(0), null)); //TODO create a request for each repo ?
+
+        results = repSys.resolveMetadata(session, metadataRequests);
+        LOGGER.info("metadataResults : {}", results);
+        return results;
+    }
+
+    DependencyResult resolveDependencies(RepositorySystem repSys, RepositorySystemSession session, DependencyNode node) {
+        DependencyRequest dependencyRequest = new DependencyRequest(node, null);
+        DependencyResult dependencyResult = null;
+
+        try {
+            dependencyResult = repSys.resolveDependencies(session, dependencyRequest);
+        } catch (DependencyResolutionException e) {
+            LOGGER.error("Error : ", e);
+        }
+        LOGGER.info("artifact result : {}", dependencyResult.getArtifactResults());
+        return dependencyResult;
+    }
+
+    DependencyNode getNodeFromCollectRequest(RepositorySystem repSys, RepositorySystemSession session, CollectRequest collectRequest) {
         DependencyNode node = null;
         try {
             CollectResult collectResult = repSys.collectDependencies(session, collectRequest);
@@ -85,53 +154,14 @@ public class GozerServlet extends HttpServlet {
         } catch (DependencyCollectionException e) {
             LOGGER.error("Error : ", e);
         }
+        return node;
+    }
 
-        DependencyRequest dependencyRequest = new DependencyRequest(node, null);
-        DependencyResult dependencyResult = null;
-
-        try {
-            dependencyResult = repSys.resolveDependencies(session, dependencyRequest);
-        } catch (DependencyResolutionException e) {
-            LOGGER.error("Error : ", e);
-        }
-
-        LOGGER.info("artifact result : {}", dependencyResult.getArtifactResults());
-
-        PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
-        node.accept(nlg);
-        LOGGER.info("classpath : {}", nlg.getClassPath());
-
-        OutputStream os = resp.getOutputStream();
-        LOGGER.info("dependencies : {}", nlg.getDependencies(false));
-
-
-        Collection<File> metadataFiles = new ArrayList<File>();
-
-        for (Dependency dep : nlg.getDependencies(false)) {
-            List<MetadataResult> results = null;
-            Collection<MetadataRequest> metadataRequests = new ArrayList<MetadataRequest>();
-            metadataRequests.add(new MetadataRequest(new DefaultMetadata(dep.getArtifact().getGroupId(), dep.getArtifact().getArtifactId(), "maven-metadata.xml", Metadata.Nature.RELEASE_OR_SNAPSHOT), repo, null));
-
-            results = repSys.resolveMetadata(session, metadataRequests);
-            LOGGER.info("metadataResults : {}", results);
-            for (MetadataResult result : results) {
-                metadataFiles.add(result.getMetadata().getFile());
-                ZipHelper zipHelper = new ZipHelper();
-
-                zipHelper.init(os);
-                zipHelper.createZipFromMetadatas(results);
-
-//                FileInputStream fileInputStream = new FileInputStream(result.getMetadata().getFile());
-//                FileNIOHelper.copyFileToStream(fileInputStream, os);
-            }
-        }
-
-
-//        zipOutputStream.close();
-
-
-
-        resp.getOutputStream().println("DaFuck");
-        resp.getOutputStream().close();
+    CollectRequest buildCollectRequest(Dependency dependency, List<RemoteRepository> repositories) {
+        CollectRequest collectRequest = new CollectRequest();
+        collectRequest.setRoot(dependency);
+        collectRequest.setRepositories(repositories);
+        LOGGER.debug("collectRequest : {}", collectRequest);
+        return collectRequest;
     }
 }

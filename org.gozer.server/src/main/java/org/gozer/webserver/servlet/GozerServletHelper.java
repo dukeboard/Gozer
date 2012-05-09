@@ -6,14 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.ConfigurationProperties;
 import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.collection.CollectRequest;
-import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
 import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
-import org.sonatype.aether.graph.Dependency;
-import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.impl.internal.EnhancedLocalRepositoryManagerFactory;
 import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
@@ -21,14 +16,10 @@ import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
-import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,13 +32,13 @@ import java.util.List;
  */
 public class GozerServletHelper extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(GozerServletHelper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GozerServletHelper.class);
     private static final String REPOSITORIES = "Repositories";
 
     List<RemoteRepository> getRepositoriesFromRequest(HttpServletRequest request) {
 
         String header = request.getHeader(REPOSITORIES);
-        logger.info("Request header : Repositories : {}",header);
+        LOGGER.info("Request header : Repositories : {}", header);
         if (header == null) {
             // if no repositories, switch default to central
             return Arrays.asList(new RemoteRepository("central", "default", "http://repo1.maven.org/maven2/"));
@@ -74,27 +65,27 @@ public class GozerServletHelper extends HttpServlet {
                 repositories.add(repository);
             }
         }
-
+        LOGGER.debug("repositories : {}", repositories);
         return repositories;
     }
 
     Artifact getArtifactFromRequest(String pathInfo) {
-        logger.debug("pathInfo = {}", pathInfo);
+        LOGGER.debug("pathInfo = {}", pathInfo);
 
         String metadataInfo = pathInfo.substring(0, pathInfo.indexOf("/gozer-metadata.zip"));
 
         String version = metadataInfo.substring(metadataInfo.lastIndexOf("/")).replaceFirst("/","");
-        logger.debug("version = {}", version);
+        LOGGER.debug("version = {}", version);
 
         String metadataInfoWithoutVersion = metadataInfo.substring(0, metadataInfo.indexOf("/"+version));
-        logger.debug("metadataInfoWithoutVersion = {}", metadataInfoWithoutVersion);
+        LOGGER.debug("metadataInfoWithoutVersion = {}", metadataInfoWithoutVersion);
         String artifactId = metadataInfoWithoutVersion.substring(metadataInfoWithoutVersion.lastIndexOf("/")).replaceFirst("/","");
-        logger.debug("artifactId = {}", artifactId);
+        LOGGER.debug("artifactId = {}", artifactId);
 
         String groupId = metadataInfoWithoutVersion.substring(0, metadataInfoWithoutVersion.lastIndexOf("/"));
         groupId = groupId.replaceAll("/", ".");
 
-        logger.debug("groupId = {}", groupId);
+        LOGGER.debug("groupId = {}", groupId);
 
         return new DefaultArtifact(groupId, artifactId, "jar", version);
     }
