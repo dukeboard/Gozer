@@ -75,22 +75,33 @@ public class AetherHelper extends HttpServlet {
     Artifact getArtifactFromRequest(String pathInfo) {
         LOGGER.debug("pathInfo = {}", pathInfo);
 
-        String metadataInfo = pathInfo.substring(0, pathInfo.indexOf("/gozer-metadata.zip"));
+        String[] partsOfUrl = pathInfo.split("/");
 
-        String version = metadataInfo.substring(metadataInfo.lastIndexOf("/")).replaceFirst("/","");
-        LOGGER.debug("version = {}", version);
+        String version = buildVersion(partsOfUrl);
+        String artifactId = buildArtifactId(partsOfUrl);
+        String groupId = buildGroupId(partsOfUrl);
 
-        String metadataInfoWithoutVersion = metadataInfo.substring(0, metadataInfo.indexOf("/"+version));
-        LOGGER.debug("metadataInfoWithoutVersion = {}", metadataInfoWithoutVersion);
-        String artifactId = metadataInfoWithoutVersion.substring(metadataInfoWithoutVersion.lastIndexOf("/")).replaceFirst("/","");
-        LOGGER.debug("artifactId = {}", artifactId);
-
-        String groupId = metadataInfoWithoutVersion.substring(0, metadataInfoWithoutVersion.lastIndexOf("/"));
-        groupId = groupId.replaceAll("/", ".");
-
-        LOGGER.debug("groupId = {}", groupId);
+        LOGGER.debug("artifact = {}:{}:{}", new String[]{groupId, artifactId, version});
 
         return new DefaultArtifact(groupId, artifactId, "jar", version);
+    }
+
+    String buildVersion(String[] partsOfUrl) {
+        return partsOfUrl[partsOfUrl.length - 2];
+    }
+
+    String buildArtifactId(String[] partsOfUrl) {
+        return partsOfUrl[partsOfUrl.length - 3];
+    }
+
+    String buildGroupId(String[] partsOfUrl) {
+        int i = 0;
+        StringBuilder groupIdBuilder = new StringBuilder(partsOfUrl[i++]);
+        while (i <= partsOfUrl.length - 4) {
+            groupIdBuilder.append('.').append(partsOfUrl[i++]);
+        }
+
+        return groupIdBuilder.toString();
     }
 
     RepositorySystem newRepositorySystem() {
