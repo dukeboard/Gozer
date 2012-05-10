@@ -21,7 +21,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -40,23 +39,17 @@ public class GozerServlet extends HttpServlet {
     private static final String REPOSITORIES = "Repositories";
     public static final String COMPILE = "compile";
     public static final String MAVEN_METADATA_XML = "maven-metadata.xml";
-    private final GozerServletHelper gozerHelper;
+    private final AetherHelper aetherHelper;
     private final ZipHelper zipHelper;
 
     public GozerServlet() {
-        gozerHelper = new GozerServletHelper();
+        aetherHelper = new AetherHelper();
         zipHelper = new ZipHelper();
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         LOGGER.info("uri = {}", req.getRequestURI());
-
-//        FileNIOHelper.copyFileToStream(this.getClass().getClassLoader().getResourceAsStream("stub.zip"), resp.getOutputStream());
-//        resp.getOutputStream().close();
-//        if(true) return ;
-
-
 
         /**
          * 1 - le client demande au serveur pour demander un artefact sur GozerServlet avec un discrimant (classifier ou packaging)
@@ -67,14 +60,14 @@ public class GozerServlet extends HttpServlet {
          * 6 - le serveur lui renvoie zippé d'un bloc
          */
 
-        RepositorySystem repSys = gozerHelper.newRepositorySystem();
+        RepositorySystem repSys = aetherHelper.newRepositorySystem();
 
-        RepositorySystemSession session = gozerHelper.newSession(repSys);
-        Artifact artifact = gozerHelper.getArtifactFromRequest(req.getPathInfo());
+        RepositorySystemSession session = aetherHelper.newSession(repSys);
+        Artifact artifact = aetherHelper.getArtifactFromRequest(req.getPathInfo());
         Dependency dependency = new Dependency(artifact, COMPILE); // TODO handle scope
         LOGGER.debug("dependency : {}", dependency);
 
-        List<RemoteRepository> repositories = gozerHelper.getRepositoriesFromRequest(req);
+        List<RemoteRepository> repositories = aetherHelper.readRepositoriesFromRequest(req);
 
 
 

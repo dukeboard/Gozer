@@ -28,20 +28,19 @@ import java.util.List;
  * Created by IntelliJ IDEA.
  * User: duke
  * Date: 28/03/12
- * Time: 22:01
  */
-public class GozerServletHelper extends HttpServlet {
+public class AetherHelper extends HttpServlet {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GozerServletHelper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AetherHelper.class);
     private static final String REPOSITORIES = "Repositories";
 
-    List<RemoteRepository> getRepositoriesFromRequest(HttpServletRequest request) {
+    List<RemoteRepository> readRepositoriesFromRequest(HttpServletRequest request) {
 
         String header = request.getHeader(REPOSITORIES);
         LOGGER.info("Request header : Repositories : {}", header);
         if (header == null) {
             // if no repositories, switch default to central
-            return Arrays.asList(new RemoteRepository("central", "default", "http://repo1.maven.org/maven2/"));
+            return Arrays.asList(newCentralRepository());
         }
 
         String[] repos = header.split(",");
@@ -69,6 +68,10 @@ public class GozerServletHelper extends HttpServlet {
         return repositories;
     }
 
+    RemoteRepository newCentralRepository() {
+        return new RemoteRepository("central", "default", "http://repo1.maven.org/maven2/");
+    }
+
     Artifact getArtifactFromRequest(String pathInfo) {
         LOGGER.debug("pathInfo = {}", pathInfo);
 
@@ -92,7 +95,6 @@ public class GozerServletHelper extends HttpServlet {
 
     RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = new DefaultServiceLocator();
-//        locator.setService(org.sonatype.aether.spi.log.Logger.class, Slf4jLogger.class);
         locator.setService(LocalRepositoryManagerFactory.class, EnhancedLocalRepositoryManagerFactory.class);
         locator.setService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
         locator.setService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class);
@@ -103,14 +105,22 @@ public class GozerServletHelper extends HttpServlet {
         MavenRepositorySystemSession session = new MavenRepositorySystemSession();
         session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
         session.setConfigProperty("aether.connector.ahc.provider", "jdk");
-        //DEFAULT VALUE
-        //TODO CHEKK THIS HACK
-        session.setLocalRepositoryManager(system.newLocalRepositoryManager(new LocalRepository(System.getProperty("user.home").toString() + "/.m2/repository")));
-        //TRY TO FOUND MAVEN CONFIGURATION
-        File configFile = new File(System.getProperty("user.home").toString() + File.separator + ".m2" + File.separator + "settings.xml");
+        //TODO check this hack
+        LocalRepository localRepository = new LocalRepository(defaultLocalRepository());
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(localRepository));
+        //TODO try to found maven configuration
+        File configFile = new File(defaultUserSettings());    // TODO is never used
         session.getConfigProperties().put(ConfigurationProperties.REQUEST_TIMEOUT, 2000);
         session.getConfigProperties().put(ConfigurationProperties.CONNECT_TIMEOUT, 1000);
 
         return session;
+    }
+
+    String defaultUserSettings() {
+        return defaultLocalRepository() + "settings.xml";
+    }
+
+    String defaultLocalRepository() {
+        return System.getProperty("user.home") + File.separator +".m2"+ File.separator +"repository";
     }
 }
