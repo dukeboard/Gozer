@@ -27,8 +27,6 @@ import static org.mockito.Mockito.when;
  * Created with IntelliJ IDEA.
  * User: sebastien
  * Date: 16/04/12
- * Time: 19:17
- * To change this template use File | Settings | File Templates.
  */
 public class ZipHelperTest {
 
