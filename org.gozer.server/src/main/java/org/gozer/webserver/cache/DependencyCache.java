@@ -5,8 +5,11 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+import org.sonatype.aether.graph.DependencyNode;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,10 +19,11 @@ import java.io.File;
  */
 public class DependencyCache {
 
+    private static final DependencyCache SINGLETON = new DependencyCache();
     private CacheManager manager;
     private File gozerDir;
 
-    public DependencyCache() {
+    private DependencyCache() {
         manager = new CacheManager();
         createGozerDir();
 
@@ -55,28 +59,21 @@ public class DependencyCache {
     }
 
 
-    public static final void main(String... args) {
-        System.out.println("BEGIN");
-        DependencyCache cache = new DependencyCache();
-        cache.put("test", new File("/home/sebastien/PanelBoueeGrid.java"));
-        cache.flush();
-        cache.shutdown();
-        System.out.println("END");
-    }
-
     private void shutdown() {
         manager.shutdown();
     }
 
-    public void put(String key, File file) {
-        Element element = new Element(key, file);
+    public void put(String artifact, Collection<DependencyNode> dependencies) {
+        Element element = new Element(artifact, dependencies);
         getCache().put(element);
     }
 
-    public File get(String key) {
-        return (File) getCache().get(key).getValue();
+    public File get(String artifact) {
+        return (File) getCache().get(artifact).getValue();
     }
 
 
-
+    public static DependencyCache getInstance() {
+        return SINGLETON;
+    }
 }
