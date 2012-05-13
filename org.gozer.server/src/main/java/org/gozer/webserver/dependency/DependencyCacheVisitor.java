@@ -187,4 +187,8 @@ public class DependencyCacheVisitor implements DependencyVisitor {
     public void setCache(DependencyCache cache) {
         this.cache = cache;
     }
+
+    public Dependency[] getDependencies(boolean b) {
+        return new Dependency[0];  //To change body of created methods use File | Settings | File Templates.
+    }
 }
