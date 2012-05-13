@@ -187,7 +187,7 @@ public class Aether {
         return results;
     }
 
-    public CollectRequest buildCollectRequest(Dependency dependency, List<RemoteRepository> repositories) {
+    CollectRequest buildCollectRequest(Dependency dependency, List<RemoteRepository> repositories) {
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRoot(dependency);
         collectRequest.setRepositories(repositories);
@@ -195,7 +195,9 @@ public class Aether {
         return collectRequest;
     }
 
-    public DependencyNode getNodeFromCollectRequest(RepositorySystemSession session, CollectRequest collectRequest) {
+    public DependencyNode getNodeFromCollectRequest(RepositorySystemSession session, Dependency dependency, List<RemoteRepository> repositories) {
+        CollectRequest collectRequest = buildCollectRequest(dependency, repositories);
+
         DependencyNode node = null;
         try {
             CollectResult collectResult = repositorySystem.collectDependencies(session, collectRequest);

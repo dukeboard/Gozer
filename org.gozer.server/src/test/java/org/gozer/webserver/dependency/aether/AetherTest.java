@@ -132,15 +132,13 @@ public class AetherTest {
 
     @Test
     public void should_create_a_dependencyRequest_from_a_collectRequest() {
-        CollectRequest collectRequest = aether.buildCollectRequest(dependency, repositories);
-        DependencyNode node = aether.getNodeFromCollectRequest(session, collectRequest);
+        DependencyNode node = aether.getNodeFromCollectRequest(session, dependency, repositories);
         assertNotNull("the node should not be null", node);
     }
 
     @Test
     public void should_resolve_dependencies() throws DependencyResolutionException {
-        CollectRequest collectRequest = aether.buildCollectRequest(dependency, repositories);
-        DependencyNode node = aether.getNodeFromCollectRequest(session, collectRequest);
+        DependencyNode node = aether.getNodeFromCollectRequest(session, dependency, repositories);
         DependencyResult results = aether.resolveDependencies(session, node);
         assertNotNull("the results should not be null", results);
     }

@@ -76,9 +76,7 @@ public class GozerServlet extends HttpServlet {
 
         List<RemoteRepository> repositories = aether.readRepositoriesFromRequest(req);
 
-        CollectRequest collectRequest = aether.buildCollectRequest(dependency, repositories);
-
-        DependencyNode node = aether.getNodeFromCollectRequest(session, collectRequest);
+        DependencyNode node = aether.getNodeFromCollectRequest(session, dependency, repositories);
 
 
         // TODO should we use this or a visitor, check performance...
