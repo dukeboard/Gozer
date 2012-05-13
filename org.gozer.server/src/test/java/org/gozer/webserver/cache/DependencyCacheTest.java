@@ -17,7 +17,7 @@ public class DependencyCacheTest {
 
     @Test
     public void should_create_a_gozer_directory() {
-        DependencyCache cache = new DependencyCache();
+        DependencyCache cache = DependencyCache.getInstance();
         cache.createGozerDir();
         assertTrue(new File(System.getProperty("user.home") + "/.gozer").exists());
     }
