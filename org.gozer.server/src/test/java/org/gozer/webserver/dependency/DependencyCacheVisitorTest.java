@@ -52,6 +52,9 @@ public class DependencyCacheVisitorTest {
 
     @Test
     public void should_put_in_cache_the_artifact_as_key_and_its_dependencies_as_value_when_entering_a_new_node() {
+
+        when(cache.get(artifact.toString())).thenReturn(DependencyCache.notInCacheElement);
+
         visitor.visitEnter(node);
 
         verify(cache).put(artifact.toString(), node.getChildren());
@@ -59,6 +62,9 @@ public class DependencyCacheVisitorTest {
 
     @Test
     public void should_return_true_when_entering_a_new_node() {
+
+        when(cache.get(artifact.toString())).thenReturn(DependencyCache.notInCacheElement);
+
         DependencyNode newNode = node;
         boolean isNewNode = visitor.visitEnter(newNode);
 
