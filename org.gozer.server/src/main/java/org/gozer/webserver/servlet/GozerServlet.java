@@ -34,7 +34,6 @@ import java.util.List;
  * Created by IntelliJ IDEA.
  * User: duke , sebastien
  * Date: 28/03/12
- * Time: 22:01
  */
 public class GozerServlet extends HttpServlet {
 
@@ -125,8 +124,11 @@ public class GozerServlet extends HttpServlet {
         this.visitor = visitor;
     }
 
-
     public void setAether(Aether aether) {
         this.aether = aether;
+    }
+
+    public void setZipHelper(ZipHelper zipHelper) {
+        this.zipHelper = zipHelper;
     }
 }

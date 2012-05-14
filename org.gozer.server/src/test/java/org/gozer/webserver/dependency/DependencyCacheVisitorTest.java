@@ -11,6 +11,7 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.graph.DefaultDependencyNode;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -74,7 +75,7 @@ public class DependencyCacheVisitorTest {
     @Test
     public void should_return_false_when_entering_a_known_node() {
         when(cache.get(node.getDependency().getArtifact().toString())).thenReturn(null)
-                                                                       .thenReturn(new File(""));
+                                                                       .thenReturn(new ArrayList<DependencyNode>());
 
 
         DependencyNode newNode = node;
@@ -90,7 +91,7 @@ public class DependencyCacheVisitorTest {
     @Test
     public void should_store_dependency_of_node_in_cache() {
         when(cache.get(node.getDependency().getArtifact().toString())).thenReturn(null)
-                .thenReturn(new File(""));
+                .thenReturn(new ArrayList<DependencyNode>());
 
 
         DependencyNode newNode = node;

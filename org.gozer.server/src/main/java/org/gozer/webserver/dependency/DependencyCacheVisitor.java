@@ -8,6 +8,7 @@ import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.graph.DependencyVisitor;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
 
@@ -28,6 +29,13 @@ public class DependencyCacheVisitor implements DependencyVisitor {
     public DependencyCacheVisitor() {
 //        nodes = new ArrayList<DependencyNode>( 128 );
 //        visitedNodes = new IdentityHashMap<DependencyNode, Object>( 512 );
+        init(); //TODO @PostContruct doesn't work with tjws
+    }
+
+    @PostConstruct
+    public void init() {
+        LOGGER.debug("INIT");
+        cache = DependencyCache.getInstance();
     }
 
 
@@ -173,7 +181,8 @@ public class DependencyCacheVisitor implements DependencyVisitor {
     }
 
     private boolean isKnownNode(DependencyNode node) {
-        if (cache.get(node.getDependency().getArtifact().toString()) != null) {
+        LOGGER.debug("cache : {}", cache);
+        if (cache.get(node.getDependency().getArtifact().toString()) != DependencyCache.notInCacheElement) {
             LOGGER.debug("This node is already in cache");
             return true;
         }

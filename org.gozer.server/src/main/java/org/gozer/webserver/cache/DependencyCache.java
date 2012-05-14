@@ -5,21 +5,26 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
+import org.sonatype.aether.util.graph.DefaultDependencyNode;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
  * User: sebastien
  * Date: 09/05/12
- * Time: 22:20
  */
 public class DependencyCache {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyCache.class);
     private static final DependencyCache SINGLETON = new DependencyCache();
+    public static final NotInCacheElement notInCacheElement = new NotInCacheElement();
     private CacheManager manager;
     private File gozerDir;
 
@@ -29,17 +34,17 @@ public class DependencyCache {
 
 
         //Create a Cache specifying its configuration.
-        Cache testCache = new Cache(
-                new CacheConfiguration("testCache", 1000)
+        Cache gozerCache = new Cache(
+                new CacheConfiguration("gozer", 1000)
                         .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
                         .overflowToDisk(true)
-                        .eternal(true)
+                        .eternal(false)
                         .timeToLiveSeconds(60)
                         .timeToIdleSeconds(30)
                         .diskPersistent(false)
                         .diskStorePath(gozerDir.getAbsolutePath())
-                        .diskExpiryThreadIntervalSeconds(0));
-        manager.addCache(testCache);
+                );
+        manager.addCache(gozerCache);
     }
 
     void createGozerDir() {
@@ -55,7 +60,8 @@ public class DependencyCache {
     }
 
     Cache getCache() {
-        return manager.getCache("testCache");
+        LOGGER.debug("cache : {}", manager.getCache("gozer"));
+        return manager.getCache("gozer");
     }
 
 
@@ -64,16 +70,52 @@ public class DependencyCache {
     }
 
     public void put(String artifact, Collection<DependencyNode> dependencies) {
-        Element element = new Element(artifact, dependencies);
+        Element element = new Element(artifact, getDependenciesAsString(dependencies));
         getCache().put(element);
     }
 
-    public File get(String artifact) {
-        return (File) getCache().get(artifact).getValue();
+
+    String getDependenciesAsString(Collection<DependencyNode> dependencies) {
+         StringBuilder sb = new StringBuilder();
+         for (DependencyNode dependencyNode : dependencies) {
+            sb.append(dependencyNode.getDependency().getArtifact()).append(";");
+         }
+        return sb.toString();
+    }
+
+    Collection<DependencyNode> getStringAsDependencies(String dependencies) {
+       Collection<DependencyNode> nodes = new ArrayList<DependencyNode>();
+       for (String dependency : dependencies.split(";")) {
+           nodes.add(new DefaultDependencyNode(new Dependency(new DefaultArtifact(dependency), "compile")));
+       }
+       return nodes;
+    }
+
+    public Collection<DependencyNode> get(String artifact) {
+
+        Element element = getCache().get(artifact);
+        if (element != null) {
+            LOGGER.debug("value in cache : {}", element.getValue());
+            return (Collection<DependencyNode>) getStringAsDependencies((String)element.getValue());
+        } else {
+            return notInCacheElement;
+        }
     }
 
 
     public static DependencyCache getInstance() {
         return SINGLETON;
+    }
+
+    private static class NotInCacheElement extends AbstractCollection<DependencyNode> {
+        @Override
+        public Iterator<DependencyNode> iterator() {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public int size() {
+            return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        }
     }
 }

@@ -93,6 +93,46 @@ public class GozerServletIT {
         }
     }
 
+    @Test
+    public void service2() {
+        String url = "http://localhost:8080/gozer/org/springframework/spring-core/3.0.5.RELEASE/gozer-metadata.zip";
+        // Create an instance of HttpClient.
+        HttpClient client = new HttpClient();
+
+        // Create a method instance.
+        GetMethod method = new GetMethod(url);
+
+        try {
+            // Execute the method.
+            int statusCode = client.executeMethod(method);
+            statusCode = client.executeMethod(method);
+
+            if (statusCode != HttpStatus.SC_OK) {
+                LOGGER.error("Method failed: " + method.getStatusLine());
+            }
+
+            // Read the response body.
+            InputStream responseBodyStream = method.getResponseBodyAsStream();
+
+            // Deal with the response.
+            // Use caution: ensure correct character encoding and is not binary data
+//            LOGGER.info("response : {}", convertStreamToString(responseBodyStream));
+
+            File file = new File("gozer-metadata.zip");
+            FileWriter writer = new FileWriter(file);
+            writer.write(convertStreamToString(responseBodyStream));
+            writer.close();
+
+        } catch (HttpException e) {
+            LOGGER.error("Fatal protocol violation: ", e);
+        } catch (IOException e) {
+            LOGGER.error("Fatal transport error: ", e);
+        } finally {
+            // Release the connection.
+            method.releaseConnection();
+        }
+    }
+
     private String convertStreamToString(InputStream is) throws IOException {
         /*
          * To convert the InputStream to String we use the
