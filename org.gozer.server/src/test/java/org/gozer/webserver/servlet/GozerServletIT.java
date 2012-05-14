@@ -21,9 +21,9 @@ import static org.junit.Assert.assertEquals;
  * Date: 29/03/12
  * Time: 01:26
  */
-public class GozerServletIntegrationTest {
+public class GozerServletIT {
 
-    private static final Logger logger = LoggerFactory.getLogger(GozerServletIntegrationTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GozerServletIT.class);
 
     private GozerInternalServer srv;
     private Thread serverThread;
@@ -68,7 +68,7 @@ public class GozerServletIntegrationTest {
             int statusCode = client.executeMethod(method);
 
             if (statusCode != HttpStatus.SC_OK) {
-                logger.error("Method failed: " + method.getStatusLine());
+                LOGGER.error("Method failed: " + method.getStatusLine());
             }
 
             // Read the response body.
@@ -76,7 +76,7 @@ public class GozerServletIntegrationTest {
 
             // Deal with the response.
             // Use caution: ensure correct character encoding and is not binary data
-//            logger.info("response : {}", convertStreamToString(responseBodyStream));
+//            LOGGER.info("response : {}", convertStreamToString(responseBodyStream));
 
             File file = new File("gozer-metadata.zip");
             FileWriter writer = new FileWriter(file);
@@ -84,9 +84,9 @@ public class GozerServletIntegrationTest {
             writer.close();
 
         } catch (HttpException e) {
-            logger.error("Fatal protocol violation: ", e);
+            LOGGER.error("Fatal protocol violation: ", e);
         } catch (IOException e) {
-            logger.error("Fatal transport error: ", e);
+            LOGGER.error("Fatal transport error: ", e);
         } finally {
             // Release the connection.
             method.releaseConnection();
