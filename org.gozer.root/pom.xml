@@ -7,6 +7,13 @@
     <name>Gozer :: Root</name>
     <url>https://github.com/dukeboard/kevoree</url>
 
+    <licenses>
+        <license>
+            <name>Apache, version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
