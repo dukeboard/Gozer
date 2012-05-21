@@ -153,6 +153,16 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+
+
+        <dependency>
+            <groupId>javolution</groupId>
+            <artifactId>javolution</artifactId>
+            <version>5.5.1</version>
+        </dependency>
+
+
     </dependencies>
 
     <repositories>
