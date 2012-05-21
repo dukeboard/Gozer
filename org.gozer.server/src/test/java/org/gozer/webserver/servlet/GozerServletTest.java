@@ -1,134 +1,113 @@
 package org.gozer.webserver.servlet;
 
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.gozer.webserver.GozerInternalServer;
-import org.junit.After;
+import org.gozer.webserver.dependency.DependencyCacheVisitor;
+import org.gozer.webserver.dependency.aether.Aether;
+import org.gozer.webserver.util.ZipHelper;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.graph.Dependency;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.MetadataRequest;
+import org.sonatype.aether.resolution.MetadataResult;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
+import org.sonatype.aether.util.graph.DefaultDependencyNode;
 
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by IntelliJ IDEA.
- * User: Sébastien
+ * User: sebastien
  * Date: 29/03/12
- * Time: 01:26
  */
 public class GozerServletTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(GozerServletTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GozerServletTest.class);
+    private static final String PATH_INFO = "/org/springframework/spring-core/3.0.5.RELEASE/gozer-metadata.zip";
+    private static final String GROUP_ID = "org.springframework";
+    private static final String ARTIFACT_ID = "spring-core";
+    private static final String VERSION = "3.0.5.RELEASE";
+    private static final String EXTENSION = "jar";
+    private GozerServlet servlet;
 
-    private GozerInternalServer srv;
-    private Thread serverThread;
 
     @Before
-    public void startServer() {
-        srv = new GozerInternalServer();
-        // setting aliases, for an optional file servlet
-        Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
-        srv.setMappingTable(aliases);
-        srv.addServlet("/gozer/*", new GozerServlet()); // optional
-
-        serverThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                srv.serve();
-            }
-        });
-        serverThread.start();
-    }
-
-    @After
-    public void stopServer() {
-
-        srv.notifyStop();
-        srv.destroyAllServlets();
-
-        serverThread.stop();
+    public void setUp() {
+        servlet = new GozerServlet();
     }
 
     @Test
-    public void service() {
-        String url = "http://localhost:8080/gozer/org/springframework/spring-core/3.0.5.RELEASE/gozer-metadata.zip";
-        // Create an instance of HttpClient.
-        HttpClient client = new HttpClient();
+    public void should_call_DependencyCacheVisitor() throws IOException, ServletException {
 
-        // Create a method instance.
-        GetMethod method = new GetMethod(url);
+        DependencyCacheVisitor visitor = mock(DependencyCacheVisitor.class);
+        Aether aether = mock(Aether.class);
 
-        try {
-            // Execute the method.
-            int statusCode = client.executeMethod(method);
+        servlet.setVisitor(visitor);
+        servlet.setAether(aether);
 
 
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
 
+        Artifact artifact = new DefaultArtifact(GROUP_ID, ARTIFACT_ID, EXTENSION, VERSION);
+        List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
+        DefaultDependencyNode node = new DefaultDependencyNode();
+        Dependency dependency = new Dependency(artifact, "compile");
 
+        when(request.getPathInfo()).thenReturn(PATH_INFO);
+        when(aether.getArtifactFromRequest(PATH_INFO)).thenReturn(artifact);
 
-            if (statusCode != HttpStatus.SC_OK) {
-                logger.error("Method failed: " + method.getStatusLine());
-            }
+        when(aether.getNodeFromCollectRequest(aether.newSession(), new Dependency(artifact, "compile"), repositories)).thenReturn(node);
 
-            // Read the response body.
-            InputStream responseBodyStream = method.getResponseBodyAsStream();
+        when(visitor.getDependencies(false)).thenReturn(new Dependency[]{dependency});
 
-            // Deal with the response.
-            // Use caution: ensure correct character encoding and is not binary data
-//            logger.info("response : {}", convertStreamToString(responseBodyStream));
+        when(response.getOutputStream()).thenReturn(new FakeOutputStream());
 
-            File file = new File("metadata.txt");
-            FileWriter writer = new FileWriter(file);
-            writer.write(convertStreamToString(responseBodyStream));
-            writer.close();
+        servlet.service(request, response);
 
-
-        } catch (HttpException e) {
-            logger.error("Fatal protocol violation: ", e);
-        } catch (IOException e) {
-            logger.error("Fatal transport error: ", e);
-        } finally {
-            // Release the connection.
-            method.releaseConnection();
-        }
+        verify(visitor).visitEnter(node);
     }
 
-    public String convertStreamToString(InputStream is)
-            throws IOException {
-        /*
-         * To convert the InputStream to String we use the
-         * Reader.read(char[] buffer) method. We iterate until the
-         * Reader return -1 which means there's no more data to
-         * read. We use the StringWriter class to produce the string.
-         */
-        if (is != null) {
-            Writer writer = new StringWriter();
+    @Test
+    public void should_send_a_zip() {
 
-            char[] buffer = new char[1024];
-            try {
-                Reader reader = new BufferedReader(
-                        new InputStreamReader(is, "UTF-8"));
-                int n;
-                while ((n = reader.read(buffer)) != -1) {
-                    writer.write(buffer, 0, n);
-                }
-            } finally {
-                is.close();
-            }
-            return writer.toString();
-        } else {
-            return "";
-        }
+        ZipHelper zipHelper = mock(ZipHelper.class);
+
+        servlet.setZipHelper(zipHelper);
+
+        List<MetadataResult> metadataResults = new ArrayList<MetadataResult>();
+        metadataResults.add(new MetadataResult(new MetadataRequest()));
+
+        OutputStream os = new FakeOutputStream();
+
+        servlet.sendZipOfMetadataIntoStream(os, metadataResults);
+
+        verify(zipHelper).init(os);
+        verify(zipHelper).createZipFromMetadatas(metadataResults);
+
     }
 
 
+    public class FakeOutputStream extends ServletOutputStream {
+
+        public FakeOutputStream() {
+
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+        }
+    }
 }
