@@ -1,10 +1,6 @@
 package org.gozer.webserver.cache;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+import javolution.util.FastMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.graph.Dependency;
@@ -25,26 +21,12 @@ public class DependencyCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyCache.class);
     private static final DependencyCache SINGLETON = new DependencyCache();
     public static final NotInCacheElement notInCacheElement = new NotInCacheElement();
-    private CacheManager manager;
+    private FastMap<String, Collection<DependencyNode>> manager;
     private File gozerDir;
 
     private DependencyCache() {
-        manager = new CacheManager();
+        manager = new FastMap<String, Collection<DependencyNode>>();
         createGozerDir();
-
-
-        //Create a Cache specifying its configuration.
-        Cache gozerCache = new Cache(
-                new CacheConfiguration("gozer", 1000)
-                        .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
-                        .overflowToDisk(true)
-                        .eternal(false)
-                        .timeToLiveSeconds(60)
-                        .timeToIdleSeconds(30)
-                        .diskPersistent(false)
-                        .diskStorePath(gozerDir.getAbsolutePath())
-                );
-        manager.addCache(gozerCache);
     }
 
     void createGozerDir() {
@@ -56,22 +38,21 @@ public class DependencyCache {
 
 
     public void flush() {
-        getCache().flush();
+        getCache().clear();
     }
 
-    Cache getCache() {
-        LOGGER.debug("cache : {}", manager.getCache("gozer"));
-        return manager.getCache("gozer");
+    Map<String, Collection<DependencyNode>> getCache() {
+        LOGGER.debug("cache : {}", manager);
+        return manager;
     }
 
 
-    private void shutdown() {
-        manager.shutdown();
-    }
+//    private void shutdown() {
+//        manager.shutdown();
+//    }
 
     public void put(String artifact, Collection<DependencyNode> dependencies) {
-        Element element = new Element(artifact, getDependenciesAsString(dependencies));
-        getCache().put(element);
+        getCache().put(artifact, dependencies);
     }
 
 
@@ -93,10 +74,10 @@ public class DependencyCache {
 
     public Collection<DependencyNode> get(String artifact) {
 
-        Element element = getCache().get(artifact);
+        Collection<DependencyNode> element = getCache().get(artifact);
         if (element != null) {
-            LOGGER.debug("value in cache : {}", element.getValue());
-            return (Collection<DependencyNode>) getStringAsDependencies((String)element.getValue());
+            LOGGER.debug("value in cache : {}", element);
+            return element;
         } else {
             return notInCacheElement;
         }
