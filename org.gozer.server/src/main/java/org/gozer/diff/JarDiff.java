@@ -28,15 +28,14 @@ public class JarDiff {
         System.out.println("Time " + (System.currentTimeMillis() - l));
 
 
-        File f = new File("drop");
         File fout = new File("drop.jar");
         f.mkdirs();
-        buildZipPatch(diff, f, newAntLR,fout);
+        buildZipPatch(diff, newAntLR,fout);
 
 
     }
 
-    public static void buildZipPatch(Differences diff, File outputDir, File lastVersionFile, File patchFile) {
+    public static void buildZipPatch(Differences diff, File lastVersionFile, File patchFile) {
         try {
             FileOutputStream fout = new FileOutputStream(patchFile);
             ZipOutputStream outputStream = new ZipOutputStream(fout);

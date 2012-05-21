@@ -1,18 +1,10 @@
 package org.gozer.diff;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * Utility class for calculating SHA1 sums of files as strings.
- * @author evan
- *
- */
 public class SHA1 {
 
     private static final String SHA1_STR = "SHA-1";

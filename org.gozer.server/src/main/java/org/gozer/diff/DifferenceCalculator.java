@@ -1,6 +1,7 @@
 package org.gozer.diff;
 
 import javolution.util.FastMap;
+
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -125,7 +126,6 @@ public class DifferenceCalculator {
         Set allNames = new HashSet();
         allNames.addAll(names1);
         allNames.addAll(names2);
-
         Iterator iterAllNames = allNames.iterator();
         while (iterAllNames.hasNext()) {
             String name = (String) iterAllNames.next();
@@ -134,16 +134,9 @@ public class DifferenceCalculator {
             } else if (names2.contains(name) && (!names1.contains(name))) {
                 d.fileAdded(name);
             } else if (names1.contains(name) && (names2.contains(name))) {
-
-                if(!Arrays.equals(m1.get(name),m2.get(name))){
+                if (!Arrays.equals(m1.get(name), m2.get(name))) {
                     d.fileChanged(name);
                 }
-
-                //ZipEntry entry1 = (ZipEntry) m1.get(name);
-                //ZipEntry entry2 = (ZipEntry) m2.get(name);
-              //  if (!entriesMatch(entry1, entry2)) {
-                 //   d.fileChanged(name);
-               // }
             } else {
                 throw new IllegalStateException("unexpected state");
             }
